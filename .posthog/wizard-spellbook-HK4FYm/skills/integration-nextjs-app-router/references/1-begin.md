@@ -1,6 +1,6 @@
 ---
 title: PostHog Setup - Begin
-description: Start the event tracking setup process by analyzing the project and creating an event tracking plan
+description: Start the events tracking setup process by analyzing the project and creating an events tracking plan
 ---
 
 We're making an event tracking plan for this project.
