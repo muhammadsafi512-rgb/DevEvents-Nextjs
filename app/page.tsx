@@ -20,8 +20,10 @@ const Page = async () => {
 
           <ul className="events">
             {events && events.length > 0 && events.map((event: IEvent)=>(
+              <li key= {event.title} className="list-none">
 
                   <EventCard key={event.slug} {...event} />
+              </li>
 
             ))}
           </ul>
