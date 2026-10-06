@@ -242,7 +242,7 @@ export async function POST(request: Request) {
     users.set(username, user);
   }
 
-  // Capture server-side login event
+  // Capture server-side login events
   const posthog = getPostHogClient();
   posthog.capture({
     distinctId: username,
@@ -297,7 +297,7 @@ export default function BurritoPage() {
     setHasConsidered(true);
     setTimeout(() => setHasConsidered(false), 2000);
     
-    // Capture burrito consideration event
+    // Capture burrito consideration events
     posthog.capture('burrito_considered', {
       total_considerations: user.burritoConsiderations + 1,
       username: user.username,
@@ -630,7 +630,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           username: username,
         });
         
-        // Capture login event
+        // Capture login events
         posthog.capture('user_logged_in', {
           username: username,
         });
@@ -645,7 +645,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    // Capture logout event before resetting
+    // Capture logout events before resetting
     posthog.capture('user_logged_out');
     posthog.reset();
     

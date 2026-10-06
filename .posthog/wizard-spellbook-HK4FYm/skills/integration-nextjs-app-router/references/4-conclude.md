@@ -51,7 +51,7 @@ A trends insight with a breakdown (breakdowns go in `breakdownFilter.breakdowns`
       "series": [{ "kind": "EventsNode", "event": "user_signed_up", "math": "total" }],
       "interval": "day",
       "dateRange": { "date_from": "-30d" },
-      "breakdownFilter": { "breakdowns": [{ "type": "event", "property": "plan" }] },
+      "breakdownFilter": { "breakdowns": [{ "type": "events", "property": "plan" }] },
       "trendsFilter": { "display": "ActionsBar" }
     }
   }
