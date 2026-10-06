@@ -3,7 +3,7 @@ import {notFound} from "next/navigation";
 import Image from "next/image";
 import BookEvent from "@/components/BookEvent";
 import {IEvent} from "@/database/event.model";
-import {getSimilarEventsBySlug} from "@/lib/actions/event.action";
+import {getEventBySlug, getSimilarEventsBySlug} from "@/lib/actions/event.action";
 import EventCard from "@/components/EventCard";
 import { cacheLife } from "next/cache";
 
@@ -11,14 +11,9 @@ async function getEvent(slug: string) {
     "use cache";
     cacheLife("hours");
 
-    const res = await fetch(`${BASE_URL}/api/events/${slug}`);
-    if (!res.ok) return null;
-
-    const { event } = await res.json();
-    return event ?? null;
+    return await getEventBySlug(slug);
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const EventDetailItem = ({ icon, alt, label }: { icon: string; alt: string; label: string }) => (
     <div className="flex-row-gap-2 items-center">
