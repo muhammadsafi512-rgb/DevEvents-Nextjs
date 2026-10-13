@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
+    "bcryptjs": "^3.0.3",
     "cloudinary": "^2.11.0",
+    "jose": "^6.2.12",
     "mongoose": "^9.10.3",
     "next": "16.3.7",
     "ogl": "^1.0.11",

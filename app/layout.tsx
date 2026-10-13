@@ -3,7 +3,8 @@ import { Schibsted_Grotesk, Martian_Mono } from "next/font/google";
 import LightRays   from "@/components/LightRays";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-
+import AuthModalProvider from "@/components/AuthModalProvider";
+import CreateEventModalProvider from "@/components/CreateEventModalProvider";
 
 const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-schibsted-grotesk",
@@ -24,8 +25,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en">
-    <body className={`${schibstedGrotesk.variable} ${martianMono.variable} min-h-screen antialiased`}
-    >
+    <body className={`${schibstedGrotesk.variable} ${martianMono.variable} min-h-screen antialiased`}>
+    <AuthModalProvider>
+      <CreateEventModalProvider>
     <Navbar/>
 
     <div className= "absolute inset-0 top-0 z-[-1] min-h-screen" >
@@ -48,7 +50,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <main>
       {children}
     </main>
-
+      </CreateEventModalProvider>
+    </AuthModalProvider>
     </body>
     </html>
   );

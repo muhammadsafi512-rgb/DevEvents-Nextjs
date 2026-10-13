@@ -6,6 +6,9 @@ import {IEvent} from "@/database/event.model";
 import {getEventBySlug, getSimilarEventsBySlug} from "@/lib/actions/event.action";
 import EventCard from "@/components/EventCard";
 import { cacheLife } from "next/cache";
+import { getSession} from "@/lib/session";
+import { getBookingCount, hasBooked} from "@/lib/actions/booking.action";
+import DeleteEventButton from "@/components/DeleteEventButton";
 
 async function getEvent(slug: string) {
     "use cache";
@@ -50,10 +53,15 @@ const EventDetails = async ({ params }: { params: Promise<{ slug: string}>})=>{
 
     const { description, image, overview, date, time, location, mode, agenda, audience, tags, organizer } = event;
 
+    const session = await getSession();
 
-    const bookings = 10;
+    const canManage = !!session && (session.role ==="admin" || String(event.createdBy ?? "") === session.userId);
 
-    const similarEvents: IEvent[] = await getSimilarEventsBySlug(slug);
+    const [similarEvents, bookings, alreadyBooked] = await Promise.all([
+        getSimilarEventsBySlug(slug),
+        getBookingCount(event._id),
+        hasBooked(event._id),
+    ]);
 
     return (
         <section id="event">
@@ -100,8 +108,18 @@ const EventDetails = async ({ params }: { params: Promise<{ slug: string}>})=>{
                         ): (
                             <p className="text-sm">Be the first to book your spot!</p>
                         )}
-                        <BookEvent eventId={event._id} slug={event.slug}/>
+                        <BookEvent
+                            eventId={event._id}
+                            slug={event.slug}
+                            userName={session?.name ?? null}
+                            alreadyBooked={alreadyBooked}
+                        />
                     </div>
+                    {canManage && (
+                        <div className="card-actions">
+                            <DeleteEventButton eventId={String(event._id)} redirectTo="/" />
+                        </div>
+                    )}
                 </aside>
             </div>
             <div className="flex w-full flex-col gap-4 pt-20">

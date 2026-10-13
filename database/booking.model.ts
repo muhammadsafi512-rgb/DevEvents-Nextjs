@@ -4,6 +4,7 @@ import Event from './event.model';
 // TypeScript interface for Booking document
 export interface IBooking extends Document {
     eventId: Types.ObjectId;
+    userId?: Types.ObjectId; //optional for now
     email: string;
     createdAt: Date;
     updatedAt: Date;
@@ -15,6 +16,11 @@ const BookingSchema = new Schema<IBooking>(
             type: Schema.Types.ObjectId,
             ref: 'Event',
             required: [true, 'Event ID is required'],
+        },
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            index: true,
         },
         email: {
             type: String,
@@ -42,18 +48,12 @@ BookingSchema.pre('save', async function () {
 
     // Only validate eventId if it's new or modified
     if (booking.isModified('eventId') || booking.isNew) {
-        try {
-            const eventExists = await Event.findById(booking.eventId).select('_id');
+        const eventExists = await Event.exists({ _id: booking.eventId });
 
-            if (!eventExists) {
-                const error = new Error(`Event with ID ${booking.eventId} does not exist`);
-                error.name = 'ValidationError';
-                return (error);
-            }
-        } catch {
-            const validationError = new Error('Invalid events ID format or database error');
-            validationError.name = 'ValidationError';
-            return (validationError);
+        if (!eventExists) {
+            const error = new Error(`Event with ID ${booking.eventId} does not exist`);
+            error.name = "ValidationError";
+            throw error;
         }
     }
 

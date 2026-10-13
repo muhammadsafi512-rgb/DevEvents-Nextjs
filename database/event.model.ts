@@ -1,4 +1,4 @@
-import { Schema, model, models, Document } from 'mongoose';
+import { Schema, model, models, Document, Types } from 'mongoose';
 
 // TypeScript interface for Event document
 export interface IEvent extends Document {
@@ -18,6 +18,11 @@ export interface IEvent extends Document {
     tags: string[];
     createdAt: Date;
     updatedAt: Date;
+    createdBy?: Types.ObjectId;
+}
+export type PublicEvent = IEvent & {
+    creatorName: string | null;
+    featured: boolean;
 }
 
 const EventSchema = new Schema<IEvent>(
@@ -103,9 +108,15 @@ const EventSchema = new Schema<IEvent>(
                 message: 'At least one tag is required',
             },
         },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            index: true,
+        },
     },
     {
         timestamps: true, // Auto-generate createdAt and updatedAt
+        strict: 'throw', // saving a field that isn't in the schema will throw an error
     }
 );
 

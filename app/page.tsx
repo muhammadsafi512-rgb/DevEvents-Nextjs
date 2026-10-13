@@ -1,14 +1,17 @@
 import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
-import {IEvent} from "@/database/event.model";
-import {cacheLife} from "next/cache";
+import {cacheLife, cacheTag} from "next/cache";
 import { getEvents } from "@/lib/actions/event.action";
+import { PublicEvent} from "@/database/event.model";
 
 const Page = async () => {
   'use cache';
-  cacheLife('hours')
+  cacheLife('hours');
+  cacheTag('events');
 
-  const events: IEvent[] = await getEvents();
+  const events: PublicEvent[] = await getEvents();
+  const featured = events.filter((event) => event.featured);
+  const community = events.filter((event) => !event.featured);
 
   return (
       <section>
@@ -17,19 +20,34 @@ const Page = async () => {
         <p className="text-center mt-5">Hackathons, Meetups, & Conferences, All in One Place </p>
 
         <ExploreBtn/>
+<div id="events" className="scroll-mt-20">
+        { featured.length > 0 && (
+            <div className="mt-20 space-y-7">
+              <h3>Featured Events</h3>
+              <ul className="events">
+                {featured.map((event) => (
+                    <li key={event.slug} className="list-none">
+                      <EventCard {...event} />
+                    </li>
+                ))}
+              </ul>
+            </div>
+        )}
 
-        <div className="mt-20 space-y-7">
-          <h3>Featured Events</h3>
-
-          <ul className="events">
-            {events && events.length > 0 && events.map((event: IEvent)=>(
-              <li key= {event.slug} className="list-none">
-
-                  <EventCard {...event} />
-              </li>
-            ))}
-          </ul>
-        </div>
+        {community.length > 0 && (
+            <div className="mt-20 space-y-7">
+              <h3>Community Events</h3>
+              <ul className="events">
+                {community.map((event) => (
+                    <li key={event.slug} className="list-none">
+                      <EventCard {...event} />
+                    </li>
+                ))}
+              </ul>
+            </div>
+        )}
+</div>
+            {events.length === 0 && <p className="mt-20 text-center">No events yet.</p>}
       </section>
   )
 }
