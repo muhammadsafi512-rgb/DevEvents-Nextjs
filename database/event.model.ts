@@ -112,6 +112,7 @@ const EventSchema = new Schema<IEvent>(
             type: Schema.Types.ObjectId,
             ref: 'User',
             index: true,
+            required: true,
         },
     },
     {

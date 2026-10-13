@@ -8,6 +8,7 @@ import { getSession } from "@/lib/session";
 import User from '@/database/user.model';
 import Booking from '@/database/booking.model';
 import { isValidObjectId} from "mongoose";
+import { rateLimit} from "@/lib/rate-limit";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
@@ -22,6 +23,9 @@ export const createEvent = async (formData: FormData) : Promise<CreateEventResul
     }
 
     try {
+        if (!(await rateLimit(`create-event:${session.userId}`, 10, 60*60)).ok) {
+            return { success:false, error: "You're creating events too quickly. Please try again later." };
+        }
         const get = ( k: string) => String(formData.get(k) ?? "").trim();
 
         const data ={
