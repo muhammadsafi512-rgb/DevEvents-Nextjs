@@ -5,6 +5,7 @@ import {useRouter} from "next/navigation";
 import posthog from "posthog-js";
 import {createBooking} from "@/lib/actions/booking.action";
 import {useAuthModal} from "@/components/AuthModalProvider";
+import CancelBookingButton from "@/components/CancelBookingButton";
 
 type Props = {
     eventId: string;
@@ -13,7 +14,7 @@ type Props = {
     alreadyBooked: boolean;
 };
 
-const BookEvent = ({ eventId, slug, userName, alreadyBooked }: Props) => {
+const BookEvent = ({eventId, slug, userName, alreadyBooked}: Props) => {
 
     const router = useRouter();
     const {openAuth} = useAuthModal();
@@ -27,10 +28,10 @@ const BookEvent = ({ eventId, slug, userName, alreadyBooked }: Props) => {
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (isSubmitting) return ;
+        if (isSubmitting) return;
 
         if (!userName) {
-            openAuth({ mode: "login", reason: "Login to book your spot for this event."});
+            openAuth({mode: "login", reason: "Login to book your spot for this event."});
             return;
         }
 
@@ -38,21 +39,21 @@ const BookEvent = ({ eventId, slug, userName, alreadyBooked }: Props) => {
         setError(null);
 
         try {
-            const result = await createBooking({ eventId });
+            const result = await createBooking({eventId});
 
-                if (result.success) {
-                    setBooked(true);
-                    posthog.capture('event_booked', {eventId, slug });
-                    router.refresh();
-                    return;
-                } else {
-                    setError(result.error);
-                }
+            if (result.success) {
+                setBooked(true);
+                posthog.capture('event_booked', {eventId, slug});
+                router.refresh();
+                return;
+            } else {
+                setError(result.error);
+            }
         } catch (err) {
-                setError('Something went wrong, Please try again');
-                posthog.captureException(err);
+            setError('Something went wrong, Please try again');
+            posthog.captureException(err);
         } finally {
-                setIsSubmitting(false);
+            setIsSubmitting(false);
         }
 
     };
@@ -60,25 +61,30 @@ const BookEvent = ({ eventId, slug, userName, alreadyBooked }: Props) => {
     return (
         <div id="book-event">
             {isBooked ? (
+                <>
                     <p className="text-sm">You're booked for this event. See you there!</p>
-                ) : (
-                    <form onSubmit={handleSubmit}>
-                        <p className="text-sm">
-                            {userName? (
-                                <>Booking as <strong>{userName}</strong></>
-                            ): (
-                                "Login or Signup if you haven't to book your spot."
-                            )}
-                        </p>
+                    <div className="card-actions">
+                        <CancelBookingButton eventId={eventId} onCancelled={() => setBooked(false)} />
+                    </div>
+                </>
+            ) : (
+                <form onSubmit={handleSubmit}>
+                    <p className="text-sm">
+                        {userName ? (
+                            <>Booking as <strong>{userName}</strong></>
+                        ) : (
+                            "Login or Signup if you haven't to book your spot."
+                        )}
+                    </p>
 
-                        {error && <p className="text-sm text-red-500">{error}</p>}
+                    {error && <p className="text-sm text-red-500">{error}</p>}
 
-                        <button type="submit" disabled={isSubmitting}>
-                            {userName ? (isSubmitting? "Booking...": "Book my spot"): "Login to book"}
-                        </button>
-                    </form>
-                )}
-            </div>
-        );
-    };
+                    <button type="submit" disabled={isSubmitting}>
+                        {userName ? (isSubmitting ? "Booking..." : "Book my spot") : "Login to book"}
+                    </button>
+                </form>
+            )}
+        </div>
+    );
+};
 export default BookEvent;

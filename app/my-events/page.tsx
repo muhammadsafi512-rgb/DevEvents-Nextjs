@@ -8,6 +8,7 @@ import { getSession } from "@/lib/session";
 import { getMyEvents, getMyBookedEvents } from "@/lib/actions/event.action";
 import DeleteEventButton from "@/components/DeleteEventButton";
 import EditEventButton from "@/components/EditEventButton";
+import CancelBookingButton from "@/components/CancelBookingButton";
 
 const MyEvents = async () => {
     const session = await getSession();
@@ -66,6 +67,9 @@ const MyEvents = async () => {
                         {booked.map((event) => (
                             <li key={event.slug} className="list-none">
                                 <EventCard {...event} />
+                                <div className="card-actions">
+                                    <CancelBookingButton eventId={String(event._id)} />
+                                </div>
                             </li>
                         ))}
                     </ul>

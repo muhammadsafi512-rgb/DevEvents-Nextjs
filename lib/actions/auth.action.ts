@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import connectDB from "@/lib/mongodb";
 import User from "@/database/user.model";
 import { createSession, deleteSession } from "@/lib/session";
-import { rateLimit, getClientIp} from "@/lib/rate-limit";
+import { rateLimit, resetRateLimit,getClientIp} from "@/lib/rate-limit";
 
 type AuthResult = { success: true } | { success: false; error: string };
 
@@ -17,6 +17,7 @@ export const signup = async (input: {
 }): Promise<AuthResult> => {
     try {
         const ip = await getClientIp();
+
         if (!(await rateLimit(`signup:${ip}`, 5, 60*60,)).ok) {
             return { success: false, error: "Too many sign-up attempts. Please try again later." };
         }
@@ -61,9 +62,10 @@ export const login = async (input: { email: string; password: string }): Promise
         const password = String(input?.password ?? "");
 
         const  ip = await getClientIp();
+        const acctKey = `login-acct:${ip}:${email.slice(0, 254)}`;
         const [byIp, byAccount] = await Promise.all([
             rateLimit(`login-ip:${ip}`, 20, 15*60),
-            rateLimit(`login-acct:${ip}:${email.slice(0, 254)}`, 5, 15*60),
+            rateLimit(acctKey, 5, 15*60),
         ]);
         if (!byIp.ok || !byAccount.ok) {
             return { success: false, error: "Too many Login attempts. Please try again later." };
@@ -76,7 +78,7 @@ export const login = async (input: { email: string; password: string }): Promise
         if (!user || !valid) {
             return { success: false, error: "Invalid email or password." };  // same message for both cases
         }
-
+        await resetRateLimit(acctKey);
         await createSession({ userId: user._id.toString(), name: user.name, role: user.role });
         return { success: true };
     } catch (e) {

@@ -4,8 +4,14 @@ import Booking from '@/database/booking.model';
 import User from '@/database/user.model';
 import connectDB from "@/lib/mongodb";
 import {getSession} from "@/lib/session";
+import { isValidObjectId} from "mongoose";
+import { rateLimit} from "@/lib/rate-limit";
 
 export type BookingResult =
+    | { success: true }
+    | { success: false; error: string; code?: "unauthenticated" };
+
+export type CancelBookingResult =
     | { success: true }
     | { success: false; error: string; code?: "unauthenticated" };
 
@@ -38,6 +44,38 @@ export const createBooking =  async ({ eventId }: { eventId: string }): Promise<
         return {success: false, error: "Could not create Booking. Please try again." };
     }
 };
+
+export const cancelBooking = async (eventId: string) : Promise<CancelBookingResult> => {
+    const session = await getSession();
+    if (!session) {
+        return { success: false, error: "Please login first.", code: "unauthenticated" };
+    }
+    if (!isValidObjectId(eventId)) return { success: false, error: "Invalid Event."};
+
+    try {
+        if (!(await rateLimit(`cancel-booking:${session.userId}`, 20, 60*60)).ok) {
+            return { success:false, error: "Too many requests. Please try later."};
+        }
+
+        await connectDB();
+
+        const user = await User.findById(session.userId).select("email");
+        if (!user) return { success: false, error: "Account not found."};
+
+        //Match by user id, or by the account email (older bookings have no userId)
+        const result = await Booking.deleteMany({
+            eventId, $or: [{ userId: session.userId }, { email: user.email }],
+        });
+
+        if (result.deletedCount === 0) {
+            return { success: false, error: "You don't have a booking for this event." };
+        }
+        return { success: true };
+    } catch (e) {
+        console.error("cancelBooking error:", e);
+        return { success: false, error: "Could not cancel Booking. Please try again." };
+    }
+}
 
 export const getBookingCount = async (eventId: string): Promise<number> => {
     try {
