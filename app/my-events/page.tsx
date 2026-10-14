@@ -7,6 +7,7 @@ import { PublicEvent } from "@/database/event.model";
 import { getSession } from "@/lib/session";
 import { getMyEvents, getMyBookedEvents } from "@/lib/actions/event.action";
 import DeleteEventButton from "@/components/DeleteEventButton";
+import EditEventButton from "@/components/EditEventButton";
 
 const MyEvents = async () => {
     const session = await getSession();
@@ -39,6 +40,7 @@ const MyEvents = async () => {
                             <li key={event.slug} className="list-none">
                                 <EventCard {...event} />
                                 <div className="card-actions">
+                                    <EditEventButton event={event} />
                                     <DeleteEventButton eventId={String(event._id)} />
                                 </div>
                             </li>

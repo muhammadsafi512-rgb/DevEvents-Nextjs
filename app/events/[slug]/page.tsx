@@ -9,6 +9,7 @@ import { cacheLife } from "next/cache";
 import { getSession} from "@/lib/session";
 import { getBookingCount, hasBooked} from "@/lib/actions/booking.action";
 import DeleteEventButton from "@/components/DeleteEventButton";
+import EditEventButton from "@/components/EditEventButton";
 
 async function getEvent(slug: string) {
     "use cache";
@@ -117,6 +118,7 @@ const EventDetails = async ({ params }: { params: Promise<{ slug: string}>})=>{
                     </div>
                     {canManage && (
                         <div className="card-actions">
+                            <EditEventButton event={event} />
                             <DeleteEventButton eventId={String(event._id)} redirectTo="/" />
                         </div>
                     )}

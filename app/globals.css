@@ -497,7 +497,10 @@
     @apply text-red-400;
   }
   .card-actions {
-    @apply mt-3 flex;
+    @apply mt-3 flex flex-wrap items-start gap-2;
+  }
+  .btn-edit {
+    @apply rounded-md border border-white/20 px-4 py-1.5 text-sm font-semibold text-light-100 cursor-pointer transition hover:bg-white/10;
   }
   html {
     scroll-behavior: smooth;

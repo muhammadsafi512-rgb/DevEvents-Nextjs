@@ -14,6 +14,18 @@ const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
 export type CreateEventResult = | { success:true; slug:string }
                                 | { success:false; error:string; code?:"unauthenticated" };
+export type UpdateEventResult = | { success:true; slug:string }
+                                | { success:false; error:string; code?:"unauthenticated" };
+
+async function destroyCloudinaryImage(url?: string) {
+    try {
+        const match = url?.match(/\/upload\/(?:v\d+\/)?(DevEvent\/.+)\.[a-z0-9]+$/i);
+        if (match) await cloudinary.uploader.destroy(match[1]);
+    } catch {
+
+    }
+}
+
 
 export const createEvent = async (formData: FormData) : Promise<CreateEventResult> => {
     //Server side login check
@@ -86,6 +98,85 @@ export const createEvent = async (formData: FormData) : Promise<CreateEventResul
         return {success: false, error: "Could not create event."};
     }
 };
+
+export async function updateEvent(eventId: string, formData: FormData): Promise<UpdateEventResult> {
+    const session = await getSession();
+    if (!session) {
+        return { success: false, error: "Please login to edit this event.", code: "unauthenticated"};
+    }
+    if (!isValidObjectId(eventId)) return { success: false, error: "Invalid Event."};
+
+    try {
+        if (!(await rateLimit(`edit-event:${session.userId}`, 20, 60*60)).ok) {
+            return { success: false, error: "You're editing too quickly. Please try again later."};
+        }
+
+        await connectDB();
+
+        const event = await Event.findById(eventId).select("createdBy image slug");
+        if (!event) return { success: false, error: "Event not found." };
+
+        //re-check the role in the DB: the token role's role could be stale
+        const user = await User.findById(session.userId).select("role");
+        const isAdmin = user?.role === "admin";
+        const isOwner = !!event.createdBy && String(event.createdBy) === session.userId;
+        if (!isAdmin && !isOwner) return { success: false, error: " You can't edit this event." };
+
+        const get = (k: string) => String(formData.get(k) ?? "").trim();
+        const data = {
+            title: get("title"),
+            description: get("description"),
+            overview: get("overview"),
+            venue: get("venue"),
+            location: get("location"),
+            date: get("date"),
+            time: get("time"),
+            mode: get("mode"),
+            audience: get("audience"),
+            organizer: get("organizer"),
+            agenda: get("agenda").split("\n").map((s) => s.trim()).filter(Boolean),
+            tags: get("tags").split(",").map((s) => s.trim()).filter(Boolean),
+        };
+
+        const missing = Object.entries(data)
+            .filter(([, v]) => (Array.isArray(v) ? v.length === 0 : !v)).map(([k]) =>k);
+        if (missing.length) return { success:false, error: `Missing: ${missing.join(", ")}`};
+
+        //The image is optional in edit , only replace when a new file is chosen
+        let newImage: string | undefined;
+        const file = formData.get("image");
+        if (file instanceof File && file.size > 0) {
+            if (!file.type.startsWith("image")) return { success: false, error: "File must an Image."};
+            if (file.size > MAX_IMAGE_BYTES) return { success: false, error: "Image must be under 4 MB."};
+
+            const buffer = Buffer.from(await file.arrayBuffer());
+            const upload = await new Promise<{ secure_url: string}>((resolve, reject) => {
+                cloudinary.uploader.upload_stream({ folder: "DevEvent", resource_type: "image" }, (err, res) =>
+                err || !res ? reject(err) : resolve(res as any)).end(buffer);
+            });
+            newImage = upload.secure_url;
+        }
+
+        //UpdateOne (not save):  the pre-save hook would regenerate the slug when the title changes
+        await Event.updateOne(
+            { _id: event._id },
+            { $set: { ...data, ...(newImage ? { image: newImage } : {}) } },
+            { runValidators: true }
+        );
+
+        if (newImage) await destroyCloudinaryImage(event.image);
+
+        updateTag("events");
+        return { success: true, slug: event.slug as string };
+    } catch (e: any) {
+        if (e?.name === "ValidationError") {
+            const first = Object.values(e.errors)[0] as { message?: string | undefined};
+            return { success: false, error: first?.message ?? "Invalid event data."};
+        }
+        console.error("createEvent error: ",e);
+        return { success: false, error: "Could not update event."};
+    }
+}
 
 // Keeps only what th UI needs from the owner: never the email or password hash
 const toPublicEvent = (event: any) => {
