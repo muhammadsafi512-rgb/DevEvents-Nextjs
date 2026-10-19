@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import connectDB from "@/lib/mongodb";
 import User from "@/database/user.model";
-import { createSession, deleteSession } from "@/lib/session";
+import {createSession, deleteSession, getSession} from "@/lib/session";
 import { rateLimit, resetRateLimit,getClientIp} from "@/lib/rate-limit";
 
 type AuthResult = { success: true } | { success: false; error: string };
@@ -91,3 +91,7 @@ export const logout = async (): Promise<AuthResult> => {
     await deleteSession();
     return { success: true };
 };
+
+export async function isLoggedIn(): Promise<boolean> {
+    return !!(await getSession());
+}

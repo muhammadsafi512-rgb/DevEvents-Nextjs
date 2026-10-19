@@ -72,7 +72,10 @@ export const cancelBooking = async (eventId: string) : Promise<CancelBookingResu
         await connectDB();
 
         const event = await Event.findById(eventId).select("date").lean();
-        if (event && isPastEvent(event.date)) {
+        if (!event) {
+            return {success: false, error: "This event could not be found."};
+        }
+        if (isPastEvent(event.date)) {
             return { success: false, error: " This event has ended, so you cannot cancel the booking anymore."};
         }
 

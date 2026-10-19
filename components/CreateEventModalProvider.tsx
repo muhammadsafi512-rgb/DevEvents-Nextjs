@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import CreateEventForm, { EditableEvent } from "@/components/CreateEventForm";
+import { useAuthModal } from "@/components/AuthModalProvider";
+import { isLoggedIn } from "@/lib/actions/auth.action";
 
 const CreateEventModalContext = createContext<{ openCreateEvent: () => void; openEditEvent: (event: EditableEvent) => void; } | null>(null);
 
@@ -14,10 +16,20 @@ export const useCreateEventModal = () => {
 const CreateEventModalProvider = ({ children }: { children: React.ReactNode }) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const titleId = useId();
+    const { openAuth } = useAuthModal();
     const [open, setOpen] = useState(false);
 
+
     const [editing, setEditing] = useState<EditableEvent | null>(null);
-    const openCreateEvent = useCallback(() => { setEditing(null); setOpen(true);}, []);
+    const openCreateEvent = useCallback(async () => {
+        const show = () => { setEditing(null); setOpen(true);};
+
+        if (!(await isLoggedIn())) {
+            openAuth({ mode: "login", reason: "Log in to create an event.", onSuccess: show });
+            return;
+        }
+        show();
+    }, [openAuth]);
     const openEditEvent = useCallback((event: EditableEvent) => { setEditing(event); setOpen(true);}, []);
     const close = useCallback(() => setOpen(false), []);
 
