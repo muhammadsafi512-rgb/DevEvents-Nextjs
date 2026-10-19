@@ -6,6 +6,7 @@ import AuthModalProvider from "@/components/AuthModalProvider";
 import CreateEventModalProvider from "@/components/CreateEventModalProvider";
 import { ThemeProvider } from "next-themes";
 import ThemedLightRays from "@/components/ThemedLightRays";
+import Footer from "@/components/Footer";
 
 const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-schibsted-grotesk",
@@ -25,19 +26,20 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" suppressHydrationWarning>
-    <body className={`${schibstedGrotesk.variable} ${martianMono.variable} min-h-screen antialiased`}>
+    <body className={`${schibstedGrotesk.variable} ${martianMono.variable} flex min-h-screen flex-col antialiased`}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
     <AuthModalProvider>
       <CreateEventModalProvider>
     <Navbar/>
 
-    <div className= "absolute inset-0 top-0 z-[-1] min-h-screen" >
+    <div className= "pointer-events-none fixed inset-0 z-[-1] " >
       <ThemedLightRays />
     </div>
 
     <main>
       {children}
     </main>
+    <Footer />
       </CreateEventModalProvider>
     </AuthModalProvider>
     </ThemeProvider>

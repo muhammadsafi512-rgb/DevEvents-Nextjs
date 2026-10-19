@@ -120,7 +120,11 @@
 @utility card-shadow {
   box-shadow: var(--shadow-card);
 }
-
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -131,7 +135,7 @@
   }
 
   main {
-    @apply mx-auto container flex flex-col sm:px-10 px-5 py-10;
+    @apply mx-auto container flex flex-col grow sm:px-10 px-5 py-10;
   }
 
   h1 {
@@ -503,7 +507,7 @@
     }
   }
   .filters {
-    @apply mt-16 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+    @apply mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
 
     input {
       @apply w-full rounded-[6px] border border-foreground/20 bg-dark-100 px-4 py-2.5 text-base text-foreground outline-none placeholder:text-light-200 focus:ring-2 focus:ring-primary/60 sm:max-w-sm;
@@ -519,6 +523,80 @@
           @apply border-primary bg-primary text-black hover:bg-primary;
         }
       }
+    }
+  }
+  .hero {
+    @apply relative flex min-h-[calc(100svh-8rem)] flex-col items-center justify-center text-center;
+
+    /* Faint grid, faded out toward the edges */
+    &::before {
+      content: "";
+      @apply pointer-events-none absolute inset-0 -z-10;
+      background-image:
+              linear-gradient(to right, color-mix(in oklab, var(--foreground) 4%, transparent) 1px, transparent 1px),
+              linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 4%, transparent) 1px, transparent 1px);
+      background-size: 48px 48px;
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 100%);
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 100%);
+    }
+
+    /* Divider line at the bottom of the hero */
+    &::after {
+      content: "";
+      @apply pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent;
+    }
+
+    .hero-pill {
+      @apply mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-blue;
+    }
+
+    .hero-sub {
+      @apply mt-5 max-w-xl text-lg text-light-100 max-sm:text-base;
+    }
+
+    .hero-stats {
+      @apply mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-2;
+
+      p {
+        @apply text-sm text-light-200;
+
+        strong {
+          @apply mr-1 text-base font-semibold text-foreground;
+        }
+      }
+    }
+
+    .hero-chips {
+      @apply pointer-events-none absolute inset-0 max-lg:hidden;
+    }
+
+    .hero-chip {
+      @apply absolute rounded-full border border-foreground/15 bg-dark-100/60 px-3 py-1 text-xs text-light-100 backdrop-blur-sm;
+      animation: hero-float 7s ease-in-out infinite;
+
+      &:nth-child(1) { top: 16%; left: 8%; animation-delay: 0s; }
+      &:nth-child(2) { top: 28%; right: 9%; animation-delay: -2s; }
+      &:nth-child(3) { bottom: 30%; left: 13%; animation-delay: -4s; }
+      &:nth-child(4) { bottom: 22%; right: 14%; animation-delay: -1s; }
+      &:nth-child(5) { top: 10%; right: 28%; animation-delay: -5s; }
+      &:nth-child(6) { bottom: 10%; left: 30%; animation-delay: -3s; }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero .hero-chip { animation: none; }
+  }
+
+  .cta {
+    @apply mx-auto mt-24 flex w-full max-w-3xl flex-col items-center gap-4 rounded-2xl border border-foreground/10 bg-dark-100/60 px-6 py-14 text-center backdrop-blur-sm;
+    box-shadow: 0 0 80px -30px var(--primary);
+
+    h3 {
+      @apply text-3xl max-sm:text-2xl;
+    }
+
+    p {
+      @apply max-w-md text-light-200;
     }
   }
 
@@ -570,6 +648,46 @@
 
     li > div {
       @apply flex-wrap px-3 py-2;
+    }
+  }
+
+  .site-footer {
+    @apply mt-24 border-t border-foreground/10 bg-dark-100/70 backdrop-blur-sm;
+
+    .footer-inner {
+      @apply mx-auto container grid gap-10 px-5 py-12 sm:px-10 md:grid-cols-3;
+    }
+
+    .footer-name {
+      @apply font-schibsted-grotesk text-xl font-bold italic;
+    }
+
+    .footer-tag {
+      @apply mt-2 max-w-xs text-sm text-light-200;
+    }
+
+    h4 {
+      @apply mb-3 text-sm font-semibold uppercase tracking-wide text-light-100;
+    }
+
+    ul {
+      @apply flex list-none flex-col gap-2;
+    }
+
+    a {
+      @apply text-sm text-light-200 transition-colors hover:text-foreground;
+    }
+
+    .footer-sponsors {
+      @apply mx-auto container border-t border-foreground/10 px-5 py-8 sm:px-10;
+    }
+
+    .sponsor-row {
+      @apply flex flex-wrap items-center gap-x-8 gap-y-4;
+    }
+
+    .footer-bottom {
+      @apply mx-auto container border-t border-foreground/10 px-5 py-5 text-xs text-light-200 sm:px-10;
     }
   }
 }
