@@ -16,9 +16,10 @@ interface Props {
     time: string,
     creatorName?: string | null,
     featured?: boolean,
+    ended?: boolean,
 }
 
-const EventCard = ({ title, image, slug, location, date, time, creatorName, featured }: Props)=> {
+const EventCard = ({ title, image, slug, location, date, time, creatorName, featured, ended }: Props)=> {
     const handleEventSelection = () => {
         if (projectToken && posthogHost) {
             posthog.capture("event_selected", { event_slug: slug });
@@ -27,10 +28,12 @@ const EventCard = ({ title, image, slug, location, date, time, creatorName, feat
     };
 
     return (
-        <Link href={`/events/${slug}`} className="event-card" onClick={handleEventSelection}>
+        <Link href={`/events/${slug}`} className={ended ? "event-card is-ended": "event-card"} onClick={handleEventSelection}>
             <div className="poster-wrap">
                 <Image src={image} alt={title} width={400} height={300} className="poster" />
-                { featured && <span className="featured-badge">Featured</span>}
+                {   ended ? (
+                    <span className="ended-badge">Ended</span>
+                    ) : featured && <span className="featured-badge">Featured</span>}
             </div>
 
             <div className="flex flex-row gap-2">

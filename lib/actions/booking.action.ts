@@ -6,6 +6,8 @@ import connectDB from "@/lib/mongodb";
 import {getSession} from "@/lib/session";
 import { isValidObjectId} from "mongoose";
 import { rateLimit} from "@/lib/rate-limit";
+import Event from "@/database/event.model";
+import { isPastEvent} from "@/lib/event-date";
 
 export type BookingResult =
     | { success: true }
@@ -24,6 +26,16 @@ export const createBooking =  async ({ eventId }: { eventId: string }): Promise<
 
     try {
         await connectDB()
+        if (!isValidObjectId(eventId)) {
+            return { success:false, error: "This event could not be found."};
+        }
+        const event = await Event.findById(eventId).select("date").lean();
+        if (!event) {
+            return { success: false, error: "This event could not be found."};
+        }
+        if (isPastEvent(event.date)) {
+            return { success: false, error: "This event has already ended."};
+        }
 
         const user = await User.findById(session.userId).select("email");
         if (!user) {
@@ -37,7 +49,7 @@ export const createBooking =  async ({ eventId }: { eventId: string }): Promise<
         if (e?.code === 11000){
             return {success: false, error: "You've already booked this event." };
         }
-        if (e?.name === "validationError") {
+        if (e?.name === "ValidationError") {
             return {success: false, error: "This event could not be found."};
         }
         console.error("createBooking failed:", e);
@@ -58,6 +70,11 @@ export const cancelBooking = async (eventId: string) : Promise<CancelBookingResu
         }
 
         await connectDB();
+
+        const event = await Event.findById(eventId).select("date").lean();
+        if (event && isPastEvent(event.date)) {
+            return { success: false, error: " This event has ended, so you cannot cancel the booking anymore."};
+        }
 
         const user = await User.findById(session.userId).select("email");
         if (!user) return { success: false, error: "Account not found."};

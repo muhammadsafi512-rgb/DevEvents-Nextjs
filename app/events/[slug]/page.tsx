@@ -10,6 +10,7 @@ import { getSession} from "@/lib/session";
 import { getBookingCount, hasBooked} from "@/lib/actions/booking.action";
 import DeleteEventButton from "@/components/DeleteEventButton";
 import EditEventButton from "@/components/EditEventButton";
+import { isPastEvent } from "@/lib/event-date";
 
 async function getEvent(slug: string) {
     "use cache";
@@ -59,10 +60,12 @@ const EventDetails = async ({ params }: { params: Promise<{ slug: string}>})=>{
     const canManage = !!session && (session.role ==="admin" || String(event.createdBy ?? "") === session.userId);
 
     const [similarEvents, bookings, alreadyBooked] = await Promise.all([
+
         getSimilarEventsBySlug(slug),
         getBookingCount(event._id),
         hasBooked(event._id),
     ]);
+    const ended =isPastEvent(date);
 
     return (
         <section id="event">
@@ -101,19 +104,20 @@ const EventDetails = async ({ params }: { params: Promise<{ slug: string}>})=>{
                 {/* Right Side - Booking form*/}
                 <aside className="booking">
                     <div className="signup-card">
-                        <h2>Book Your Spot</h2>
-                        {bookings > 0 ? (
-                            <p className="text-sm">
-                                Join { bookings} people who have already booked their spot!
-                            </p>
+                        <h2>{ended ? "Event Ended" : "Book Your Spot"}</h2>
+                        {!ended && (
+                            bookings > 0 ? (
+                            <p className="text-sm">Join { bookings} people who have already booked their spot!</p>
                         ): (
                             <p className="text-sm">Be the first to book your spot!</p>
+                            )
                         )}
                         <BookEvent
                             eventId={event._id}
                             slug={event.slug}
                             userName={session?.name ?? null}
                             alreadyBooked={alreadyBooked}
+                            ended={ended}
                         />
                     </div>
                     {canManage && (
@@ -129,7 +133,7 @@ const EventDetails = async ({ params }: { params: Promise<{ slug: string}>})=>{
 
                 <div className="events">
                     {similarEvents.length > 0 && similarEvents.map((similarEvent: IEvent) => (
-                        <EventCard key={similarEvent.title} {...similarEvent} />
+                        <EventCard key={similarEvent.title} {...similarEvent} ended={isPastEvent(similarEvent.date)} />
                     ))}
                 </div>
             </div>

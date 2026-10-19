@@ -9,6 +9,7 @@ import { getMyEvents, getMyBookedEvents } from "@/lib/actions/event.action";
 import DeleteEventButton from "@/components/DeleteEventButton";
 import EditEventButton from "@/components/EditEventButton";
 import CancelBookingButton from "@/components/CancelBookingButton";
+import { isPastEvent } from "@/lib/event-date";
 
 const MyEvents = async () => {
     const session = await getSession();
@@ -39,7 +40,7 @@ const MyEvents = async () => {
                     <ul className="events">
                         {created.map((event) =>(
                             <li key={event.slug} className="list-none">
-                                <EventCard {...event} />
+                                <EventCard {...event} ended={isPastEvent(event.date)} />
                                 <div className="card-actions">
                                     <EditEventButton event={event} />
                                     <DeleteEventButton eventId={String(event._id)} />
@@ -64,14 +65,19 @@ const MyEvents = async () => {
                     </div>
                 ) : (
                     <ul className="events">
-                        {booked.map((event) => (
-                            <li key={event.slug} className="list-none">
-                                <EventCard {...event} />
-                                <div className="card-actions">
-                                    <CancelBookingButton eventId={String(event._id)} />
-                                </div>
-                            </li>
-                        ))}
+                        {booked.map((event) => {
+                            const ended = isPastEvent(event.date);
+                            return (
+                                <li key={event.slug} className="list-none">
+                                    <EventCard {...event} ended={ended} />
+                                    {!ended && (
+                                        <div className="card-actions">
+                                            <CancelBookingButton eventId={String(event._id)} />
+                                        </div>
+                                    )}
+                                </li>
+                            )
+                        })}
                     </ul>
                 )}
             </div>

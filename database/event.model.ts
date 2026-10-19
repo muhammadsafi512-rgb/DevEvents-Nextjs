@@ -1,4 +1,4 @@
-import { Schema, model, models, Document, Types } from 'mongoose';
+import { Schema, model, models, Document, Types, Query } from 'mongoose';
 
 // TypeScript interface for Event document
 export interface IEvent extends Document {
@@ -19,6 +19,8 @@ export interface IEvent extends Document {
     createdAt: Date;
     updatedAt: Date;
     createdBy?: Types.ObjectId;
+    deletedAt?: Date | null;
+    deletedBy?: Types.ObjectId | null;
 }
 export type PublicEvent = IEvent & {
     creatorName: string | null;
@@ -114,6 +116,8 @@ const EventSchema = new Schema<IEvent>(
             index: true,
             required: true,
         },
+        deletedAt: { type: Date, default: null },
+        deletedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     },
     {
         timestamps: true, // Auto-generate createdAt and updatedAt
@@ -190,6 +194,13 @@ function normalizeTime(timeString: string): string {
 
 // Create compound index for common queries
 EventSchema.index({ date: 1, mode: 1 });
+
+//Soft deletes: every find / count / update on event skips deleted events.
+//existing events have no deletedAt field, and 'deletedAt: null' also matches
+//a missing field, so they keep working without a migration.
+EventSchema.pre(/^(find|count|update)/, function (this: Query<any, any>) {
+   void this.where({ deletedAt: null });
+});
 
 const Event = models.Event || model<IEvent>('Event', EventSchema);
 

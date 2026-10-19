@@ -26,7 +26,6 @@ async function destroyCloudinaryImage(url?: string) {
     }
 }
 
-
 export const createEvent = async (formData: FormData) : Promise<CreateEventResult> => {
     //Server side login check
     const session = await getSession();
@@ -274,7 +273,7 @@ export async function deleteEvent(eventId: string): Promise<DeleteEventResult> {
 
     await connectDB();
 
-    const event = await Event.findById(eventId).select("createdBy image");
+    const event = await Event.findById(eventId).select("createdBy slug");
     if (!event) return {ok: false, error: "Event not found."};
 
     //Re-Check the role in the DB: token's role can be stale
@@ -285,16 +284,20 @@ export async function deleteEvent(eventId: string): Promise<DeleteEventResult> {
         return {ok: false, error: "You can't delete this event."};
     }
 
-    await Booking.deleteMany({ eventId: event._id});
-    await Event.deleteOne({ _id: event._id});
+    //Soft delete: keep the event, its booking and its image as record.
+    //The slug is renamed so the original name can be used by a new event with the same title.
 
-    //Only Image Clean up
-    try {
-        const match = event.image?.match((/\/upload\/(?:v\d+\/)?(DevEvent\/.+)\.[a-z0-9]+$/i));
-        if (match) await cloudinary.uploader.destroy(match[1]);
-    } catch {
-// The event is already deleted, so a leftover image isn't worth failing for
-    }
+    await Event.updateOne(
+        { _id: event._id},
+        {
+            $set: {
+                deletedAt: new Date(),
+                deletedBy: session.userId,
+                slug: `${event.slug}-deleted-${event._id}`,
+            },
+        }
+    );
+
     updateTag("events");
     return { ok: true};
 }

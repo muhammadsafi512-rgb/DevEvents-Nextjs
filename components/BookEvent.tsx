@@ -12,9 +12,10 @@ type Props = {
     slug: string;
     userName: string | null; //null when logged out
     alreadyBooked: boolean;
+    ended: boolean;
 };
 
-const BookEvent = ({eventId, slug, userName, alreadyBooked}: Props) => {
+const BookEvent = ({eventId, slug, userName, alreadyBooked, ended}: Props) => {
 
     const router = useRouter();
     const {openAuth} = useAuthModal();
@@ -60,7 +61,13 @@ const BookEvent = ({eventId, slug, userName, alreadyBooked}: Props) => {
 
     return (
         <div id="book-event">
-            {isBooked ? (
+            {ended ? (
+                <p className="text-sm">
+                    {isBooked
+                        ? "This event has ended. You were booked for this event."
+                        : "This event has ended. Booking is closed."}
+                </p>
+                ) : isBooked ? (
                 <>
                     <p className="text-sm">You're booked for this event. See you there!</p>
                     <div className="card-actions">
