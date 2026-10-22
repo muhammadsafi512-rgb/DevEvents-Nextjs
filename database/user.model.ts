@@ -5,10 +5,11 @@ export type UserRole = 'user' | 'admin';
 export interface IUser extends Document {
     name: string;
     email: string;
-    passwordHash: string;
+    passwordHash?: string;
     role: UserRole;
     createdAt: Date;
     updatedAt: Date;
+    googleId?: string;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -33,7 +34,6 @@ const UserSchema = new Schema<IUser>(
         },
         passwordHash: {
             type: String,
-            required: [true, 'Password is required'],
             select: false, // never returned by queries unless explicitly requested
         },
         role: {
@@ -41,6 +41,7 @@ const UserSchema = new Schema<IUser>(
             enum: { values: ['user', 'admin'], message: 'Role must be user or admin' },
             default: 'user',
         },
+        googleId: { type: String, unique: true, sparse: true },
     },
     { timestamps: true }
 );

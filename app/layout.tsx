@@ -7,6 +7,8 @@ import CreateEventModalProvider from "@/components/CreateEventModalProvider";
 import { ThemeProvider } from "next-themes";
 import ThemedLightRays from "@/components/ThemedLightRays";
 import Footer from "@/components/Footer";
+import { site } from "@/lib/site";
+import { baseUrl} from "@/lib/base-url";
 
 const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-schibsted-grotesk",
@@ -19,8 +21,11 @@ const martianMono = Martian_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DevEvent",
-  description: "The Hub for every Dev Event You Must not Miss",
+  metadataBase: new URL(baseUrl()),
+  title: {default: `${site.name} | The hub for every dev event`, template: `%s | ${site.name}`},
+  description: site.tagline,
+  openGraph: { siteName: site.name, type: "website" },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

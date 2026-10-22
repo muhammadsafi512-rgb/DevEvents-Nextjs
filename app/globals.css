@@ -191,10 +191,32 @@
   }
 
   .event-card {
-    @apply flex flex-col gap-3;
+    @apply flex flex-col gap-3 rounded-xl border border-foreground/10 bg-dark-100 p-3;
+    transition:
+            border-color 0.4s ease,
+            transform 0.25s ease,
+            box-shadow 0.4s ease;
 
-    img:not(.poster){
+    img:not(.poster) {
       @apply shrink-0;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px -12px color-mix(in srgb, var(--primary) 35%, transparent);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &:hover {
+        transform: none;
+      }
+    }
+
+    .poster-wrap {
+      @apply relative;
     }
     .poster-wrap {
       @apply relative;
@@ -395,6 +417,13 @@
       button {
         @apply cursor-pointer font-semibold text-primary hover:underline;
       }
+    }
+    .google-btn {
+      @apply flex w-full cursor-pointer items-center justify-center gap-3 rounded-[6px] border border-foreground/20 bg-dark-200 px-4 py-2.5 text-base font-semibold text-foreground transition-colors hover:bg-foreground/10;
+    }
+
+    .auth-divider {
+      @apply flex items-center gap-3 text-xs text-light-200 before:h-px before:flex-1 before:bg-foreground/15 after:h-px after:flex-1 after:bg-foreground/15;
     }
   }
   #my-events {
@@ -624,6 +653,9 @@
   .btn-edit {
     @apply rounded-md border border-foreground/20 px-4 py-1.5 text-sm font-semibold text-light-100 cursor-pointer transition hover:bg-foreground/10;
   }
+  .btn-share {
+    @apply inline-flex cursor-pointer items-center gap-2 rounded-md border border-foreground/20 px-4 py-1.5 text-sm font-semibold text-light-100 transition hover:bg-foreground/10 max-sm:min-h-11;
+  }
   .btn-edit, .btn-delete, .btn-danger, .btn-cancel {
     @apply max-sm:min-h-11;
   }
@@ -688,6 +720,37 @@
 
     .footer-bottom {
       @apply mx-auto container border-t border-foreground/10 px-5 py-5 text-xs text-light-200 sm:px-10;
+    }
+  }
+  .reset-card {
+    @apply mx-auto mt-10 flex w-full max-w-md flex-col items-start gap-6 rounded-[14px] border border-dark-200 bg-dark-100 px-6 py-7 card-shadow sm:px-8;
+
+    .reset-title {
+      @apply font-schibsted-grotesk text-2xl font-bold;
+    }
+
+    .reset-sub {
+      @apply mt-1 text-sm text-light-200;
+    }
+
+    .reset-form {
+      @apply flex w-full flex-col gap-4;
+
+      label {
+        @apply flex flex-col gap-2 text-sm text-light-100;
+      }
+
+      input {
+        @apply w-full rounded-[6px] bg-dark-200 px-4 py-2.5 text-base text-foreground outline-none focus:ring-2 focus:ring-primary/60;
+      }
+
+      .error {
+        @apply text-sm text-red-500;
+      }
+
+      button[type="submit"] {
+        @apply w-full cursor-pointer rounded-[6px] bg-primary px-4 py-2.5 text-lg font-semibold text-black hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60;
+      }
     }
   }
 }

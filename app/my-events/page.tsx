@@ -10,6 +10,9 @@ import DeleteEventButton from "@/components/DeleteEventButton";
 import EditEventButton from "@/components/EditEventButton";
 import CancelBookingButton from "@/components/CancelBookingButton";
 import { isPastEvent } from "@/lib/event-date";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "My Events", robots: { index: false } };
 
 const MyEvents = async () => {
     const session = await getSession();

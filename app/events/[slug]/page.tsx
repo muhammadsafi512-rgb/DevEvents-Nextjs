@@ -11,6 +11,8 @@ import { getBookingCount, hasBooked} from "@/lib/actions/booking.action";
 import DeleteEventButton from "@/components/DeleteEventButton";
 import EditEventButton from "@/components/EditEventButton";
 import { isPastEvent } from "@/lib/event-date";
+import ShareButton from "@/components/ShareButton";
+import type { Metadata } from "next";
 
 async function getEvent(slug: string) {
     "use cache";
@@ -18,7 +20,30 @@ async function getEvent(slug: string) {
 
     return await getEventBySlug(slug);
 }
+export async function generateMetadata({ params } : { params: Promise<{ slug: string}>}): Promise<Metadata> {
+    const { slug } = await params;
+    const event = await getEvent(slug);
+    if (!event) return {title: "Event not found"};
 
+    const description = String(event.overview ?? event.description ?? "").slice(0, 200);
+    //Ask cloudinary  for a  1200X630 crop: the size share cards use
+    const image = String(event.image).replace("/upload/", "/upload/c_fill,w_1200,_630,q_auto,f_jpg/");
+
+    return {
+        title: event.title,
+        description,
+        alternates: { canonical: `/events/${slug}`},
+        openGraph: {
+            title: event.title,
+            description,
+            url: `/events/${slug}`,
+            siteName: "DevEvents",
+            type: "website",
+            images: [{ url: image, width: 1200, height: 630, alt: event.title }],
+        },
+        twitter: { card: "summary_large_image", title: event.title, description, images: [image] },
+    };
+}
 
 const EventDetailItem = ({ icon, alt, label }: { icon: string; alt: string; label: string }) => (
     <div className="flex-row-gap-2 items-center">
@@ -72,6 +97,7 @@ const EventDetails = async ({ params }: { params: Promise<{ slug: string}>})=>{
             <div className="header">
                 <h1>Event Description</h1>
                 <p>{description}</p>
+                <ShareButton slug={event.slug} />
             </div>
             <div className="details">
                 {/* left Side - Event details*/}

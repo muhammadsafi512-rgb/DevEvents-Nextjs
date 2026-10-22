@@ -1,6 +1,7 @@
 
 export const site = {
     name:"DevEvents",
+    url: "https://dev-events-next-js.netlify.app",
     tagline: "The hub for every dev event you can't miss.",
     email: "muhammadsafi512@gmail.com",
     socials: [

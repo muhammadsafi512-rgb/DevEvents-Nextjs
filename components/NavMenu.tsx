@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {  useAuthModal } from "@/components/AuthModalProvider";
 import { logout } from "@/lib/actions/auth.action";
@@ -27,7 +27,6 @@ const MenuIcon = ({ open }: { open: boolean }) => (
 
 const NavMenu = ({ user }: { user: NavUser }) => {
     const router = useRouter();
-    const pathname = usePathname();
     const { openAuth } = useAuthModal();
     const { openCreateEvent } = useCreateEventModal();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -59,7 +58,7 @@ const NavMenu = ({ user }: { user: NavUser }) => {
         setIsLoggingOut(true);
         try {
             await logout();
-            if (pathname.startsWith("/my-events")) {
+            if (window.location.pathname.startsWith("/my-events")) {
                 router.push("/");
             }
             router.refresh();
