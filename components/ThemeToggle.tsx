@@ -7,7 +7,7 @@ const ORDER = ["light", "dark", "system"] as const;
 type Mode = (typeof ORDER)[number];
 
 const Icon = ({ mode }: { mode: Mode }) => (
-    <svg width="24" height="24" viewBox="o o 24 24" fill="none" stroke="currentColor"
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         {mode === "light" && (
             <>
