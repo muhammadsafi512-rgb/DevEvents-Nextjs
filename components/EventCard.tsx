@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import posthog from "posthog-js";
+import { useEffect, useState, useRef } from "react";
 
 const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
@@ -27,8 +28,26 @@ const EventCard = ({ title, image, slug, location, date, time, creatorName, feat
         }
     };
 
+    const ref = useRef<HTMLAnchorElement>(null);
+    const [inView, setInView] = useState(false);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el || !window.matchMedia("(hover : none)").matches) return;
+
+        const io = new IntersectionObserver(
+            ([entry]) => setInView(entry.isIntersecting),
+            { rootMargin: "-40% 0px -40% 0px" }
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
+
     return (
-        <Link href={`/events/${slug}`} className={ended ? "event-card is-ended": "event-card"} onClick={handleEventSelection}>
+        <Link  ref={ref}
+               href={`/events/${slug}`}
+               className={[ "event-card", ended && "is-ended", inView && "is-in-view" ].filter(Boolean).join(" ")}
+               onClick={handleEventSelection}>
             <div className="poster-wrap">
                 <Image src={image} alt={title} width={400} height={300} className="poster" />
                 {   ended ? (

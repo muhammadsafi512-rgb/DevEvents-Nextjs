@@ -31,6 +31,13 @@ const Footer = () => (
                     ))}
                 </ul>
             </div>
+            <div>
+                <h4>Privacy & Terms</h4>
+                <ul>
+                    <li><Link href="/privacy">Privacy Polices</Link></li>
+                    <li><Link href="/terms">Terms & Conditions</Link></li>
+                </ul>
+            </div>
         </div>
 
         {site.sponsors.length > 0 && (
